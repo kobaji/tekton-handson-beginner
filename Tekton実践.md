@@ -9,7 +9,7 @@ tekton-handson/pipeline
 
 ```
 sudo -i
-git clone https://github.com/kenta-fukushima-jb/tekton-handson.git
+https://github.com/kenta-fukushima-jb/tekton-handson-beginner.git
 cd tekton-handson
 ```
 ## 演習１
