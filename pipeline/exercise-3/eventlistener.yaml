@@ -1,0 +1,12 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: handson-eventlistener
+  namespace: cnd-co-located-handson
+spec:
+  resources:
+    kubernetesResource:
+      serviceType: NodePort
+  serviceAccountName: tekton-triggers-admin
+  triggers:
+    - triggerRef: trigger

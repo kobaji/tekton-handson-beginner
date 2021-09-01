@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: sample-task-exercise-2-1
+  namespace: cnd-co-located-handson
+spec:
+  params:
+  - name: image-name
+    description: "実行するコンテナイメージ"
+    default: ubuntu
+  - name: branch
+    description: "ブランチ名"
+  workspaces:
+    - name: secret
+    - name: shared
+  steps:
+    # - args:
+    #     - sleep
+    #     - '6000'
+    #   image: docker
+    #   name: pause
+    - image: $(params.image-name)
+      name: sample-step
+      resources:
+        requests:
+          memory: 500m
+          cpu: 500m
+      script: |
+
+        # Paramsの確認
+        echo $(params.branch)
+
+        # Workspaceの確認
+        ls -al /workspace/
+        
+        # Secretの内容をPVCは以下にファイルを作成
+        cat /workspace/secret/password > /workspace/shared/sample.txt
+
+        # 作成したファイルを確認
+        cat /workspace/shared/sample.txt

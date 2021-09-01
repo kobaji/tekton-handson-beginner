@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: pipeline-run-exercise-001
+  namespace: cnd-co-located-handson
+spec:
+  params:
+    - name: branch
+      value: "main"
+  pipelineRef:
+    name: sample-pipeline-exercise-2
+  workspaces:
+    - name: secret-data
+      secret:
+        secretName: secret-password
+    - name: shared-data
+      persistentVolumeClaim:
+        claimName: shared-task-storage

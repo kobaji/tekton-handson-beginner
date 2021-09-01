@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: task-run-exercise-001
+  namespace: cnd-co-located-handson
+spec:
+  taskRef:
+    name: sample-task-exercise-1
+  params:
+    - name: branch
+      value: "main"

@@ -1,0 +1,41 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: handson-triggertemplate
+  namespace: cnd-co-located-handson
+spec:
+  params:
+    - name: branch-name
+    - name: build-repository
+    - name: aws-accountid
+    - name: aws-region
+    - name: aws-repository
+    - name: profile-name
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      name: handson-$(uid)
+      namespace: cnd-co-located-handson
+    spec:
+      params:
+        - name: aws-accountid
+          value: $(tt.params.aws-accountid)
+        - name: aws-region
+          value: $(tt.params.aws-region)
+        - name: aws-repository
+          value: $(tt.params.aws-repository)
+        - name: profile-name
+          value: $(tt.params.profile-name)
+      serviceAccountName: tekton-triggers-admin
+      pipelineRef:
+        name: handson-pipeline
+      resources:
+        - name: src
+          resourceSpec:
+            type: git
+            params:
+              - name: revision
+                value: $(tt.params.branch-name)
+              - name: url
+                value: $(tt.params.build-repository)

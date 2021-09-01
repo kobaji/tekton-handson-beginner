@@ -1,0 +1,34 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: sample-pipeline-exercise-2
+  namespace: cnd-co-located-handson
+spec:
+  params:
+    - name: branch
+  workspaces:
+    - name: secret-data
+    - name: shared-data
+  tasks:
+    # 実行するTaskを指定（1番目）
+    - name: task-1
+      taskRef:
+        name: sample-task-exercise-2-1
+      params:
+        - name: branch
+          value: $(params.branch)
+      workspaces:
+        - name: secret
+          workspace: secret-data
+        - name: shared
+          workspace: shared-data
+    # 実行するTaskを指定（2番目）
+    - name: task-2
+      taskRef:
+        name: sample-task-exercise-2-2
+      # 実行する順番を指定
+      runAfter:
+        - task-1
+      workspaces:
+        - name: shared
+          workspace: shared-data

@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: sample-task-exercise-1
+  namespace: cnd-co-located-handson
+spec:
+  params:
+  - name: image-name
+    description: "実行するコンテナイメージ"
+    default: ubuntu
+  - name: branch
+    description: "ブランチ名"
+  steps:
+    - image: $(params.image-name)
+      name: sample-step
+      resources:
+        requests:
+          memory: 500m
+          cpu: 500m
+      script: |
+        ls -al
+        echo $(params.branch)

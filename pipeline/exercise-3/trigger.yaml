@@ -1,0 +1,23 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: Trigger
+metadata:
+  name: trigger
+spec:
+  interceptors:
+    - ref:
+        name: "cel"
+      params:
+        - name: "filter"
+          value: "body.ref=='refs/heads/main'"
+    - ref:
+        name: cel
+      params:
+        - name: "overlays"
+          value:
+          - key: branch-name
+            expression: "body.ref.split('/')[2]"
+  bindings:
+    - ref: handson-common-triggerbinding
+    - ref: handson-prod-triggerbinding
+  template:
+    ref: handson-triggertemplate

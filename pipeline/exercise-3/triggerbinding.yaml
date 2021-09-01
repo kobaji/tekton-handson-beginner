@@ -1,0 +1,27 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: handson-common-triggerbinding
+  namespace: cnd-co-located-handson
+spec:
+  params:
+    - name: build-repository    # ビルド先のリポジトリURL
+      value: https://github.com/kenta-fukushima-jb/backendapp-nodejs.git
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: handson-prod-triggerbinding
+  namespace: cnd-co-located-handson
+spec:
+  params:
+    - name: aws-accountid       # AWSのアカウントID
+      value: "1234"
+    - name: aws-region          # 変更するAWSリージョン名
+      value: ap-northeast-1
+    - name: aws-repository      # 更新するAWS　ECRリポジトリ名
+      value: prod
+    - name: profile-name        # AWSコマンドのプロファイル名
+      value: prod
+    - name: branch-name         # ビルド先のリポジトリURLのブランチ名
+      value: main

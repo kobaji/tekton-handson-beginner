@@ -1,0 +1,118 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: handson-task
+  namespace: cnd-co-located-handson
+spec:
+  resources:
+    inputs:
+      - name: src
+        type: git
+  params:
+  - name: image-name
+    description: "実行するコンテナイメージ"
+    default: node:16.3-slim@sha256:5cf3448bd86f70498653613372b862564b3b8415e11a86c6ea229939bb3dba4a
+  - name: sidecar-image-name
+    description: "サイドカーで実行するコンテナイメージ"
+    default: docker:18.05-dind@sha256:b813c414ee36b8a2c44b45295698df6bdc3bdee4a435481dbb892e1b44e09d3b
+  - name: trivy-version
+    description: "Trivyのバージョン"
+    default: "0.16.0"
+  - name: dockle-version
+    description: "Dockleのバージョン"
+    default: "0.3.13"
+  - name: aws-accountid
+    description: "AWSアカウントID"
+  - name: aws-region
+    description: "AWSリージョン名"
+  - name: aws-repository
+    description: "AWS ECR リポジトリ名"
+  - name: profile-name
+    description: "aws profile名"
+  results:
+    - name: TAG
+      description: "Container Registryのバージョン（TAG）名"
+    - name: repository-name
+  steps:
+    # - args:
+    #     - sleep
+    #     - '6000'
+    #   image: docker
+    #   name: pause
+    - image: $(params.image-name)
+      name: container-build-push
+      resources:
+        requests:
+          memory: 500m
+          cpu: 500m
+      script: |
+
+        # Dockerのインストール
+        apt-get update
+        apt-get install -y \
+            apt-transport-https \
+            ca-certificates \
+            curl \
+            gnupg \
+            lsb-release \
+            unzip \
+            wget
+        curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo \
+          "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
+          $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        apt-get update
+        apt-get install -y docker-ce docker-ce-cli containerd.io
+
+        # Trivyのインストール
+        wget -q https://github.com/aquasecurity/trivy/releases/download/v$(params.trivy-version)/trivy_$(params.trivy-version)_Linux-64bit.tar.gz
+        tar zxvf trivy_$(params.trivy-version)_Linux-64bit.tar.gz
+        mv trivy /usr/local/bin
+        trivy -v
+        
+        # Dockleのインストール
+        wget -q https://github.com/goodwithtech/dockle/releases/download/v$(params.dockle-version)/dockle_$(params.dockle-version)_Linux-64bit.tar.gz
+        tar zxvf dockle_$(params.dockle-version)_Linux-64bit.tar.gz
+        mv dockle /usr/local/bin
+        dockle -v
+
+        # コンテナイメージタグを出力する
+        export TAG=` cat /dev/urandom |LC_CTYPE=C  tr -dc 'a-z0-9' | fold -w 16 |head -n 1 | sort | uniq`
+        echo -n $TAG | tee $(results.TAG.path);
+        echo -n $(params.aws-accountid).dkr.ecr.$(params.aws-region).amazonaws.com/$(params.aws-repository) | tee $(results.repository-name.path);
+        # 各ファイルの移動
+        cd /workspace/src/
+      
+        # Imageのビルド
+        docker build -t $(params.aws-accountid).dkr.ecr.$(params.aws-region).amazonaws.com/$(params.aws-repository):`echo $TAG` .
+        cd ..
+        
+        # Trivy検証
+        trivy --severity CRITICAL --auto-refresh $(params.aws-accountid).dkr.ecr.$(params.aws-region).amazonaws.com/$(params.aws-repository):`echo $TAG`
+        
+        # Dockle検証
+        dockle $(params.aws-accountid).dkr.ecr.$(params.aws-region).amazonaws.com/$(params.aws-repository):`echo $TAG`
+
+        docker run -d -p 3000:3000 $(params.aws-accountid).dkr.ecr.$(params.aws-region).amazonaws.com/$(params.aws-repository):`echo $TAG`
+        sleep 10
+        curl localhost:3000/healthcheck
+
+      volumeMounts:
+        - mountPath: /var/run/
+          name: dind-socket
+  sidecars:
+    - image: $(params.sidecar-image-name)
+      name: server
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/docker
+          name: dind-storage
+        - mountPath: /var/run/
+          name: dind-socket
+  volumes:
+    - name: dind-storage
+      emptyDir: {}
+    - name: dind-socket
+      emptyDir: {}

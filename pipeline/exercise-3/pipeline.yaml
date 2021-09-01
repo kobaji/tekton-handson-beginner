@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: handson-pipeline
+  namespace: cnd-co-located-handson
+spec:
+  params:
+    - name: aws-accountid
+    - name: aws-region
+    - name: aws-repository
+    - name: profile-name
+  resources:
+    - name: src
+      type: git
+  tasks:
+    - name: handson-task
+      taskRef:
+        name: handson-task
+      resources:
+        inputs:
+          - name: src
+            resource: src
+      params:
+        - name: aws-accountid
+          value: $(params.aws-accountid)
+        - name: aws-region
+          value: $(params.aws-region)
+        - name: aws-repository
+          value: $(params.aws-repository)
+        - name: profile-name
+          value: $(params.profile-name)
