@@ -13,10 +13,10 @@ spec:
   steps:
     - image: $(params.image-name)
       name: sample-step
-      resources:
-        requests:
-          memory: 500m
-          cpu: 500m
+#      resources:
+#        requests:
+#          memory: 500m
+#          cpu: 500m
       script: |
         ls -al
         echo $(params.branch)
