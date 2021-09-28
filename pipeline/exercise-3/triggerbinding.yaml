@@ -7,6 +7,7 @@ spec:
   params:
     - name: build-repository    # ビルド先のリポジトリURL
       value: https://github.com/kenta-fukushima-jb/backendapp-nodejs.git
+      value: https://github.com/kobaji/tekton-handson-beginner.git
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
