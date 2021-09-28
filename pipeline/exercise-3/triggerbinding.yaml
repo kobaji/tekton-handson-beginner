@@ -6,7 +6,7 @@ metadata:
 spec:
   params:
     - name: build-repository    # ビルド先のリポジトリURL
-      value: https://github.com/kenta-fukushima-jb/backendapp-nodejs.git
+      value: https://github.com/kobaji/backendapp-nodejs.git
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
